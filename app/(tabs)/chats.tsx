@@ -7,6 +7,8 @@ import useChatsContext from "@/hooks/useChatsContext";
 import { FlashList } from "@shopify/flash-list";
 import ConversationItem from "@/components/ConversationItem";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import useAuthContext from "@/hooks/useAuthContext";
+import { router } from "expo-router";
 
 function dismissKeyboard() {
     Keyboard.dismiss();
@@ -42,9 +44,29 @@ function SearchArea() {
 const initialNumberOfConversations = 10;
 
 function ConversationsArea() {
-    const { conversations, fetchMoreConversations, conversationsAreLoading } = useChatsContext();
+    const { user } = useAuthContext();
+    const userId = "67b15c7c97869aa85f2e1b13"//user!.id;
+    const { conversations, fetchMoreConversations, conversationsAreLoading, createNewEmptyConversation } = useChatsContext();
     const [moreDataFetchingAllowed, setMoreDataFetchingAllowed] = useState(false);
     const allowMoreDataFetching = useCallback(() => setMoreDataFetchingAllowed(true), []);
+
+    const handleStartChat = async () => {
+        const conversationId = await createNewEmptyConversation({
+            firstParticipant: {
+                id: userId,
+                unreadMessages: 0,
+                deletedAt: null,
+                isTyping: false
+            },
+            secondParticipant: {
+                id: "bot",
+                unreadMessages: 0,
+                deletedAt: null,
+                isTyping: false
+            }
+        });
+        router.push(`/chat?id=${conversationId}`);
+    }
 
     if (conversations.length === 0) {
         return (
@@ -56,7 +78,10 @@ function ConversationsArea() {
                 <Image source={require("@/assets/images/chat_page.png")} style={styles.illustration} />
                 <Text style={styles.emptyChatTitle}>Speak to a professional, in the language you’re comfortable with</Text>
                 <Text style={styles.emptyChatSubtitle}>Talk to trained agents and learn where to find help through a safe and secure 1-on-1 environment.</Text>
-                <TouchableOpacity style={styles.chatButton}>
+                <TouchableOpacity
+                    onPress={handleStartChat}
+                    style={styles.chatButton}
+                >
                     <Text style={styles.chatButtonText}>Chat now</Text>
                 </TouchableOpacity>
             </View>
@@ -83,7 +108,7 @@ export default function Chats() {
     const insets = useSafeAreaInsets();
     return (
         <TouchableWithoutFeedback onPress={dismissKeyboard}>
-            <View style={[styles.container, { paddingTop: insets.top }]}>            
+            <View style={[styles.container, { paddingTop: insets.top }]}>
                 <SearchBarContextProvider>
                     <SearchArea />
                     <ConversationsArea />

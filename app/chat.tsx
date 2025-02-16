@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, SafeAreaView, useColorScheme, Image } from 'react-native';
 import { Keyboard, Alert } from "react-native"
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp, where, limit } from "firebase/firestore";
-import { firestore, messageConverter } from "@/lib/firestoreConfig";
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp, where, limit, updateDoc, doc, increment } from "firebase/firestore";
+import { conversationConverter, firestore, messageConverter } from "@/lib/firestoreConfig";
 import { router, useLocalSearchParams } from 'expo-router';
 import { MessageObject } from '@/lib/types/chat';
 import { FlashList } from '@shopify/flash-list';
@@ -109,7 +109,7 @@ export default function ChatScreen() {
     const createNewEmptyMessage = useCallback(async (args: createNewMessageArgs) => {
         const timeStamp = serverTimestamp();
 
-        return (await addDoc(messagesRef, {
+        const messageDoc = await addDoc(messagesRef, {
             id: "",
             conversationId: id,
             message: {
@@ -120,7 +120,19 @@ export default function ChatScreen() {
             receiverId: "bot",
             createdAt: timeStamp,
             timeRead: null,
-        })).id;
+        })
+
+        await updateDoc(
+            doc(firestore, "conversations", id).withConverter(
+                conversationConverter,
+            ),
+            {
+                lastMessage: args.sent_text,
+                lastMessageId: messageDoc.id,
+                "secondParticipant.unreadMessages": increment(1),
+                updatedAt: serverTimestamp(),
+            },
+        )
     }, [messagesRef]);
 
     // A useEffect to set up a new query listener when the number of docs needed changes
@@ -143,7 +155,7 @@ export default function ChatScreen() {
 
     const sendMessage = useCallback(async () => {
         if (message.trim()) {
-            const messageId = await createNewEmptyMessage({ sent_text: message, sender: "user" });
+            const messageId = await createNewEmptyMessage({ sent_text: message, sender: userId });
             setMessage("");
         }
     }, [message, createNewEmptyMessage]);

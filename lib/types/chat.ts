@@ -54,7 +54,6 @@ export type FirestoreConversationObject = {
 }
 
 export type createNewConversationArgs = {
-    otherEndUserId: string,
     firstParticipant: ConversationParticipant,
     secondParticipant: ConversationParticipant
 }

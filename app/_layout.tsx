@@ -2,7 +2,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import ReactQueryProvider from '@/context/queryContext';
+import ReactQueryProvider from '@/contexts/queryContext';
 import { AuthContextProvider } from '@/contexts/authContext';
 import { ChatsContextProvider } from '@/contexts/chatsContext';
 import { AppContextProvider } from '@/contexts/appContext';
