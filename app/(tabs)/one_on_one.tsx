@@ -1,10 +1,17 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, Button, FlatList, StyleSheet } from 'react-native';
 
-const one_on_one = () => {
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([]);
+const OneOnOne = () => {
+    const [message, setMessage] = useState<string>(''); 
+    const [messages, setMessages] = useState<string[]>([]); 
+
+
+  const sendMessage = () => {
+    if (message.trim()) {
+      setMessages([...messages, message]); 
+      setMessage(''); 
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -15,11 +22,11 @@ const one_on_one = () => {
       />
       <TextInput
         style={styles.input}
-        placeholder="message"
+        placeholder="Type a message"
         value={message}
         onChangeText={setMessage}
       />
-      <Button title="Send"/>
+      <Button title="Send" onPress={sendMessage} />
     </View>
   );
 };
@@ -30,4 +37,4 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, padding: 10, marginVertical: 10, borderRadius: 5 },
 });
 
-export default one_on_one;
+export default OneOnOne;
