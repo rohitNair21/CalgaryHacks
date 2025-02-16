@@ -124,8 +124,16 @@ const ArticleModal = ({
       visible={visible}
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+      <TouchableOpacity 
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={onClose}
+      >
+        <TouchableOpacity 
+          activeOpacity={1}
+          onPress={e => e.stopPropagation()}
+          style={styles.modalContent}
+        >
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>{article.title}</Text>
             <TouchableOpacity onPress={onClose}>
@@ -136,8 +144,8 @@ const ArticleModal = ({
           <ScrollView style={styles.modalBody}>
             <Text style={styles.modalText}>{article.content}</Text>
           </ScrollView>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };
@@ -216,10 +224,7 @@ export default function ResourcesScreen() {
           data={articles}
           scrollAnimationDuration={1000}
           renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={[styles.articleCard, { width: width - 32 }]}
-              onPress={() => setSelectedArticle(item)}
-            >
+            <View style={[styles.articleCard, { width: width - 32 }]}>
               <View style={styles.articleHeader}>
                 <Text style={styles.articleTitle}>{item.title}</Text>
               </View>
@@ -230,7 +235,7 @@ export default function ResourcesScreen() {
               >
                 <Text style={styles.readButtonText}>Read Now</Text>
               </TouchableOpacity>
-            </TouchableOpacity>
+            </View>
           )}
         />
       </View>
@@ -260,7 +265,7 @@ export default function ResourcesScreen() {
       >
         <View style={styles.imageContainer}>
           <Image 
-            source={require('@/assets/images/wallhaven-p266lm.png')}
+            source={require('@/assets/images/lake.jpg')}
             style={styles.headerImage}
           />
           <View style={styles.imageOverlay}>
