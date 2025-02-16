@@ -2,23 +2,15 @@ import { Image, StyleSheet, Platform, View, TextInput, Text, FlatList, ScrollVie
 import { Colors } from '@/constants/Colors';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { Button, Card, IconButton } from 'react-native-paper';
+import { Button, IconButton } from 'react-native-paper';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import axios from 'axios';
+import { Controller, useFormContext } from 'react-hook-form';
+import { SearchBarData } from '@/lib/types';
+import { SearchBarContextProvider } from '@/contexts/searchBarContext';
 
-
-type PostProps = { title: string, author: string, date: string, body: string, tags: Array<string> }
-
-
-const data: Array<PostProps> = [
-    { title: "Just moved to Canada", author: "Rohit India", date: "2025-01-1T12:00:00Z", body: "hime lahjfajhfsjkd aflh lafhl hockey and donuts and i don't know need text lorem i7 a thing is some thign which is also a thing so cool wow", tags: ["tag1", "tag2"] },
-    { title: "Rohit is a little bitch", author: "Marko", date: "2025-02-12T13:00:00Z", body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"] },
-    { title: "But I love him so much <3", author: "Marko", date: "2025-02-15T17:00:00-07:00", body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"] },
-]
-
-
+type PostProps = { title: string, author: { name: string }, date: string, body: string, tags: Array<string> }
 
 const Post = ({ title, author, date, body, tags }: PostProps) => {
 
@@ -66,7 +58,6 @@ const Post = ({ title, author, date, body, tags }: PostProps) => {
 
 }
 
-
 type MediaItem = {
     _id: string;
     path: string;
@@ -96,21 +87,24 @@ type Post = {
     updatedAt: string; // Use Date if you plan to parse it
 };
 const searchPosts = async ({ searchTerm, page, limit }: { searchTerm: string, page: number, limit: number }): Promise<Post[]> => {
-    const res = await axios.get('calgary-hacks-2025.vercel.app/api/posts', {
+    const res = await axios.get('https://calgary-hacks-2025.vercel.app/api/posts', {
         params: {
             searchTerm,
             page,
             limit
         }
-    }
-    )
+    })
 
     return res.data.posts
 }
 
-export default function HomeScreen() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const limit = 4;
+const limit = 4;
+
+function PostsList() {
+    const { watch } = useFormContext<SearchBarData>();
+
+    const searchTerm = watch("searchTerm");
+
     const {
         data,
         isLoading: queryIsLoading,
@@ -153,6 +147,45 @@ export default function HomeScreen() {
     const posts = data?.pages?.flatMap(page => page || []) || []
 
     return (
+        <FlatList
+            data={posts}
+            renderItem={({ item }) => (
+                <Post
+                    title={item.title}
+                    author={item.creator}
+                    date={item.createdAt}
+                    body={item.caption}
+                    tags={item.tags}
+                />
+            )}
+            ListFooterComponent={isFetching && !isFetchingNextPage ? <ActivityIndicator /> : null}
+            onEndReached={loadMore}
+            onEndReachedThreshold={2}
+            keyExtractor={item => item._id}
+        />
+    )
+}
+function SearchBar() {
+    const { control } = useFormContext<SearchBarData>();
+
+    return (
+        <Controller
+            control={control}
+            name="searchTerm"
+            render={({ field: { onBlur, onChange, value } }) => (
+                <TextInput
+                    style={styles.keywordInput}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                    value={value}
+                />
+            )}
+        />
+    )
+}
+
+export default function HomeScreen() {
+    return (
         // picture and text
         <ParallaxScrollView
             headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -165,52 +198,42 @@ export default function HomeScreen() {
             title="Welcome!"
             subtitle="Share your expreriences, post questions and find support through a passionate community"
         >
+            <SearchBarContextProvider>
+                {/* search bar */}
+                <SearchBar />
 
-            {/* search bar */}
-            <TextInput style={styles.keywordInput}>
-                Search for a keyword
-            </TextInput>
-
-            {/*filters  */}
-            <View style={styles.filterContainer}>
-                <IconButton icon="sort" />
-                <Button
-                    style={styles.filterButton}
-                    labelStyle={{ padding: 0, position: 'absolute', left: "auto", margin: 0 }}
-                    contentStyle={{ height: 25 }}
-                    mode="outlined"
-                    compact={true}
-                >
-                    <Text style={{ fontSize: 9 }}>Physical</Text>
-                </Button>
-                <Button
-                    labelStyle={{ padding: 0, position: 'absolute', left: "auto", margin: 0 }}
-                    contentStyle={{ height: 25 }}
-                    style={styles.filterButton}
-                    mode='outlined'
-                    compact={true}
-                >
-                    <Text style={{ fontSize: 9 }}>Emotional</Text>
-                </Button>
-                <Button
-                    labelStyle={{ padding: 0, position: 'absolute', left: "auto", margin: 0 }}
-                    contentStyle={{ height: 25 }}
-                    style={styles.filterButton}
-                    mode='outlined'
-                >
-                    <Text style={{ fontSize: 9 }}>Sexual violence</Text>
-                </Button>
-            </View  >
-
-            <FlatList
-                data={posts}
-                renderItem={({ item }) => <Post title={item.title} author={item.creator.name} date={item.createdAt} body={item.caption} tags={item.tags} />}
-                ListFooterComponent={isFetching && !isFetchingNextPage ? <ActivityIndicator /> : null}
-                onEndReached={loadMore}
-                onEndReachedThreshold={2}
-                keyExtractor={item => item._id}
-            />
-
+                {/*filters  */}
+                <View style={styles.filterContainer}>
+                    <IconButton icon="sort" />
+                    <Button
+                        style={styles.filterButton}
+                        labelStyle={{ padding: 0, position: 'absolute', left: "auto", margin: 0 }}
+                        contentStyle={{ height: 25 }}
+                        mode="outlined"
+                        compact={true}
+                    >
+                        <Text style={{ fontSize: 9 }}>Physical</Text>
+                    </Button>
+                    <Button
+                        labelStyle={{ padding: 0, position: 'absolute', left: "auto", margin: 0 }}
+                        contentStyle={{ height: 25 }}
+                        style={styles.filterButton}
+                        mode='outlined'
+                        compact={true}
+                    >
+                        <Text style={{ fontSize: 9 }}>Emotional</Text>
+                    </Button>
+                    <Button
+                        labelStyle={{ padding: 0, position: 'absolute', left: "auto", margin: 0 }}
+                        contentStyle={{ height: 25 }}
+                        style={styles.filterButton}
+                        mode='outlined'
+                    >
+                        <Text style={{ fontSize: 9 }}>Sexual violence</Text>
+                    </Button>
+                </View  >
+                <PostsList />
+            </SearchBarContextProvider>
         </ParallaxScrollView>
     );
 }
