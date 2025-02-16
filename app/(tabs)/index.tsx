@@ -1,13 +1,18 @@
-import { Image, StyleSheet, Platform,View, TextInput, Text, FlatList, ScrollView} from 'react-native';
+import { Image, StyleSheet, Platform,View, TextInput, Text, FlatList, ScrollView, Alert, ActivityIndicator} from 'react-native';
 import { Colors } from '@/constants/Colors';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Button, Card, IconButton } from 'react-native-paper';
-import { purple100 } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import axios from 'axios';
+import { API_PATH_PREFIX } from '@/constants/env';
 
 
 type PostProps = {title: string, author: string, date: string, body: string, tags: Array<string>}
+
+
 const data: Array<PostProps> = [
   {title: "Just moved to canada", author: "Rohit India", date: "2025-01-1T12:00:00Z" , body:"hime lahjfajhfsjkd aflh lafhl hockey and donuts and i don't know need text lorem i7 a thing is some thign which is also a thing so cool wow", tags: ["tag1", "tag2"]},
   {title: "Rohit is a little bitch", author: "Marko", date: "2025-02-12T13:00:00Z" , body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"]},
@@ -28,12 +33,12 @@ const Post = ({title, author, date, body, tags}: PostProps) => {
     const days:number = Math.floor(hours / 24);
     if (days < 7) return `${days} days ago`;
 
-    return `${then.getDate()}-${then.getMonth()}-${then.getFullYear()}`;
+    return `${then.getDate()}-${then.getMonth()+1}-${then.getFullYear()}`;
   }
   
   return(
     <View style={styles.postContainer}>
-      <ThemedText type="default">{author}</ThemedText>
+      <ThemedText type="default">{author.name}</ThemedText>
 
       {/* title and date */}
       <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
@@ -62,7 +67,94 @@ const Post = ({title, author, date, body, tags}: PostProps) => {
 
 }
 
+
+type MediaItem = {
+    _id: string;
+    path: string;
+    type: string;
+};
+
+type Creator = {
+    _id: string;
+    name: string;
+    email: string;
+    username: string;
+    clerkId: string;
+    language: string;
+    pushTokens: string[]; // Assuming pushTokens is an array of strings
+    createdAt: string; // Use Date if you plan to parse it
+    updatedAt: string; // Use Date if you plan to parse it
+};
+
+type Post = {
+    _id: string;
+    title: string;
+    caption: string;
+    media: MediaItem[];
+    creator: Creator;
+    tags: string[];
+    createdAt: string; // Use Date if you plan to parse it
+    updatedAt: string; // Use Date if you plan to parse it
+};
+const searchPosts = async ({searchTerm, page, limit}: {searchTerm: string, page: number, limit: number}) : Promise<Post[]> => {
+  const res = await  axios.get(API_PATH_PREFIX + "/posts", {
+    params: {
+      searchTerm,
+      page,
+      limit
+    }
+  }
+  )
+  
+  return res.data.posts
+}
+
 export default function HomeScreen() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const limit = 4;
+  const {
+        data,
+        isLoading: queryIsLoading,
+        isRefetching,
+        refetch,
+        isFetching,
+        isFetchingNextPage,
+        fetchNextPage,
+        hasNextPage
+    } = useInfiniteQuery({
+        queryKey: ["posts", searchTerm],
+        queryFn: async ({ pageParam }: { pageParam: number }) => {
+            try {
+                return await searchPosts({
+                    searchTerm,
+                    page: pageParam,
+                    limit
+                });
+            } catch (error) {
+                Alert.alert("Error", "An error occured while fetching posts");
+                return null
+            }
+        },
+        getNextPageParam: (lastPage, pages) => {
+            if (lastPage && lastPage.length === limit) {
+                return pages.length;
+            }
+            return null;
+        },
+        initialPageParam: 0,
+        initialData: { pages: [[]], pageParams: [0] }
+    });
+
+    const loadMore = () => {
+        if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+        }
+    };
+
+    const posts= data?.pages?.flatMap(page => page || []) || []
+    console.log(posts)
+
+
   return (
     // picture and text
     <ParallaxScrollView
@@ -112,12 +204,15 @@ export default function HomeScreen() {
           <Text style={{fontSize: 9}}>Sexual violence</Text>
         </Button>
       </View  >
-      
-       {data.map((post, index) => {
-          return <Post title={post.title} author={post.author} date={post.date} body={post.body} tags={post.tags}/> 
-        })}
 
-
+      <FlatList
+        data={posts}
+        renderItem={({ item}) => <Post title={item.title} author={item.creator.name} date={item.createdAt} body={item.caption} tags={item.tags}/>}
+        ListFooterComponent={isFetching && !isFetchingNextPage ? <ActivityIndicator /> : null} 
+        onEndReached={loadMore}
+        onEndReachedThreshold={2}
+        keyExtractor={item => item._id }
+      />
 
    </ParallaxScrollView>
   );
