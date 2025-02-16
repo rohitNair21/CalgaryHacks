@@ -4,11 +4,12 @@ import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Button, Card, IconButton } from 'react-native-paper';
+import { purple100 } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 
 
 type PostProps = {title: string, author: string, date: string, body: string, tags: Array<string>}
 const data: Array<PostProps> = [
-  {title: "Just moved to canada", author: "Rohit India", date: "2025-01-1T12:00:00Z" , body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"]},
+  {title: "Just moved to canada", author: "Rohit India", date: "2025-01-1T12:00:00Z" , body:"hime lahjfajhfsjkd aflh lafhl hockey and donuts and i don't know need text lorem i7 a thing is some thign which is also a thing so cool wow", tags: ["tag1", "tag2"]},
   {title: "Rohit is a little bitch", author: "Marko", date: "2025-02-12T13:00:00Z" , body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"]},
   {title: "But I love him so much <3", author: "Marko", date: "2025-02-15T17:00:00-07:00" , body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"]},
 ]
@@ -26,20 +27,34 @@ const Post = ({title, author, date, body, tags}: PostProps) => {
     if (days < 7) return `${days} days ago`;
 
     return `${then.getDate()}-${then.getMonth()}-${then.getFullYear()}`;
-    
-    
   }
   
   return(
     <View style={styles.postContainer}>
       <ThemedText type="default">{author}</ThemedText>
+
+      {/* title and date */}
       <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
         <ThemedText type="subtitle">{title}</ThemedText>
         <ThemedText type="default">{timeSince(date)}</ThemedText>
-
+      </View>
+      
+      {/* body  */}
+      <View style={{width: "80%", position: "relative", marginVertical: 10}}>
+        <Text numberOfLines={3} ellipsizeMode="tail" >{body.slice(0, 100)}</Text>
       </View>
 
-      <View></View>
+
+      {/* tags  */}
+      <View style={{marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 10, justifyContent: 'flex-start'}}>
+        {tags.map((tag, index) => (
+          <Text 
+            key={index}
+            style={{ textAlign: "center", borderColor: "purple", borderWidth: 1, borderRadius: 10, paddingHorizontal: 5, paddingVertical: 3, width: 70, fontSize: 10}}
+          >
+            {tag}
+          </Text>))}
+      </View>
     </View>
   )
 
@@ -133,8 +148,10 @@ const styles = StyleSheet.create({
     width: "23%",
   },
   postContainer: {
-    height: 100,
+    height: 170,
+    marginTop: 10,
     width: "100%",
+    borderBottomWidth: 1,
   },
   stepContainer: {
     gap: 8,
