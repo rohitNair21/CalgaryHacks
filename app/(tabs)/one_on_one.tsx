@@ -71,7 +71,7 @@ const OneOnOne = () => {
                             <Text style={styles.emergencyText}>In a life-threatening situation? Call 911 immediately.</Text>
                         </View>
                         <Image source={require('@/assets/images/chat_page.png')} style={styles.coverImage} />
-                        <Text style={[styles.coverText, { color: theme.text }]}>Speak to a professional in the language you’re comfortable with.</Text>
+                        <Text style={[styles.coverText]}>Speak to a professional in the language you’re comfortable with.</Text>
                         <TouchableOpacity style={styles.chatNowButton} onPress={() => setMessages([{ sent_text: 'Hello!', sender: 'user' }])}>
                             <Text style={styles.chatNowText}>Chat now</Text>
                         </TouchableOpacity>
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     coverContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
     emergencyBox: { backgroundColor: '#FCF0F4', padding: 10, borderRadius: 10, marginBottom: 15 },
     emergencyText: { color: '#74003E', fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
-    coverImage: { width: '80%', resizeMode: 'contain' },
+    coverImage: { maxHeight: '25%', width: '80%', resizeMode: 'contain' },
     coverText: { fontSize: 18, textAlign: 'center', marginTop: 20 },
     chatNowButton: { marginTop: 20, paddingVertical: 12, paddingHorizontal: 30, backgroundColor: '#74003E', borderRadius: 25 },
     chatNowText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
