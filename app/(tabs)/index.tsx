@@ -14,6 +14,8 @@ const data: Array<PostProps> = [
   {title: "But I love him so much <3", author: "Marko", date: "2025-02-15T17:00:00-07:00" , body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"]},
 ]
 
+
+
 const Post = ({title, author, date, body, tags}: PostProps) => {
   
   const timeSince = (timeString:string) => {

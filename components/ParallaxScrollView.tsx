@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactElement } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Text} from 'react-native';
 import Animated, {
   interpolate,
   useAnimatedRef,
@@ -66,8 +66,8 @@ export default function ParallaxScrollView({
           
           {headerImage}
           <View style={styles.textContainer}>
-            <ThemedText type="subtitle">{title}</ThemedText>
-            <ThemedText type="default">{subtitle}</ThemedText>
+            <Text style={{color:"#eee", fontSize: 20, lineHeight: 24, fontWeight: '600',}}>{title}</Text>
+            <Text style={{color:"#eee", fontSize: 16, lineHeight: 24, fontWeight: 'Bold',}}>{subtitle}</Text>
           </View>
         </Animated.View>
         <ThemedView style={styles.content}>{children}</ThemedView>
