@@ -66,8 +66,8 @@ export default function ParallaxScrollView({
           
           {headerImage}
           <View style={styles.textContainer}>
-            <Text style={{color:"#eee", fontSize: 20, lineHeight: 24, fontWeight: '600',}}>{title}</Text>
-            <Text style={{color:"#eee", fontSize: 16, lineHeight: 24, fontWeight: 'Bold',}}>{subtitle}</Text>
+            <Text style={{color:"#eee", fontSize: 20, lineHeight: 24, fontWeight: '600'}}>{title}</Text>
+            <Text style={{color:"#eee", fontSize: 16, lineHeight: 24, fontWeight: "bold"}}>{subtitle}</Text>
           </View>
         </Animated.View>
         <ThemedView style={styles.content}>{children}</ThemedView>
