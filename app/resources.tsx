@@ -328,11 +328,7 @@ export default function Resources() {
         contentContainerStyle={styles.articleScrollContainer}
       >
         {articles.map((article, index) => (
-          <TouchableOpacity 
-            key={index}
-            style={styles.articleContainer}
-            onPress={() => setSelectedArticle(article)}
-          >
+          <View key={index} style={styles.articleContainer}>
             <View style={styles.articleContent}>
               <Text style={styles.articleTitle}>
                 <Text style={styles.icon}>{article.icon}</Text> {article.title}
@@ -341,8 +337,13 @@ export default function Resources() {
                 {article.description}
               </Text>
             </View>
-            <FontAwesome name="chevron-right" style={styles.articleArrow} />
-          </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.readNowButton}
+              onPress={() => setSelectedArticle(article)}
+            >
+              <Text style={styles.readNowText}>Read Now</Text>
+            </TouchableOpacity>
+          </View>
         ))}
       </ScrollView>
 

@@ -212,4 +212,16 @@ export const resourcesStyles = StyleSheet.create({
     color: '#34495e',
     textAlign: 'justify',
   },
+  readNowButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    padding: 8,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  readNowText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: '600',
+  },
 }); 
