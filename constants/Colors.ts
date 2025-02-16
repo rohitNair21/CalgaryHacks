@@ -7,6 +7,22 @@ const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 
 export const Colors = {
+  primary: '#74003E',
+  link: '#007AFF',
+  warning: '#FF9500',
+  background: '#fff',
+  text: {
+    primary: '#333',
+    secondary: '#666',
+  },
+  card: {
+    pink: '#FCF0F4',
+    warning: '#FFF5E6',
+  },
+  overlay: {
+    dark: 'rgba(0, 0, 0, 0.3)',
+    modal: 'rgba(0, 0, 0, 0.5)',
+  },
   light: {
     text: '#11181C',
     background: '#fff',
