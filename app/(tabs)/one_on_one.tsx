@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, SafeAreaView, useColorScheme, Image } from 'react-native';
 import { Keyboard, Alert} from "react-native"
+import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, Timestamp } from "firebase/firestore";
+import { firestore } from "@/lib/firestoreConfig";
 
 const TRANSLATION_API_URL = 'https://calgary-hacks-2025.vercel.app/api/ai/translate';
 
@@ -70,6 +72,44 @@ const OneOnOne = () => {
         );
     };
     
+    useEffect(() => {
+        const q = query(collection(firestore, "messages"), orderBy("timestamp", "asc"));
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const messagesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setMessages(messagesData as any);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const sendMessage = async () => {
+        if (message.trim()) {
+            const timestamp = Timestamp.now();
+            await addDoc(collection(firestore, "messages"), {
+                sent_text: message,
+                sender: 'user',
+                timestamp: timestamp
+            });
+            setMessage('');
+        }
+    };
+
+    useEffect(() => {
+        const q = query(collection(firestore, "messages"), orderBy("timestamp", "asc"));
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+            const messagesData = await Promise.all(
+                snapshot.docs.map(async (doc) => {
+                    const data = doc.data();
+                    if (data.sender === 'bot') {
+                        const translatedText = await translateMessage(data.sent_text);
+                        return { id: doc.id, ...data, sent_text: translatedText };
+                    }
+                    return { id: doc.id, ...data };
+                })
+            );
+            setMessages(messagesData);
+        });
+        return () => unsubscribe();
+    }, []);
 
     const translateMessage = async (sent_text: string) => {
         try {
@@ -85,24 +125,6 @@ const OneOnOne = () => {
         } catch (error) {
             console.error('Translation error:', error);
             return sent_text; 
-        }
-    };
-
-    const sendMessage = async () => {
-        if (message.trim()) {
-            const timestamp = new Date().toLocaleString();
-            const translatedMessage = await translateMessage(message);
-            const newMessages = [
-                ...messages,
-                { sent_text: message, sender: 'user' , timestamp},
-                { sent_text: `Echo: ${translatedMessage}`, sender: 'bot', timestamp }
-            ];
-            setMessages(newMessages);
-            setMessage('');
-            if (!agentName) {
-                setAgentName('Agent Smith');
-            }
- 
         }
     };
 
@@ -138,7 +160,8 @@ const OneOnOne = () => {
                         renderItem={({ item }) => (
                             <View style={[styles.messageContainer, item.sender === 'user' ? styles.userMessage : styles.botMessage]}> 
                              <Text style={[styles.messageText, item.sender === 'user' ? { color: '#fff' } : { color: theme.text }]}>{item.sent_text}</Text>
-                             <Text style={styles.timestamp}>{item.timestamp}</Text>                            </View>
+                             <Text style={styles.timestamp}>{item.timestamp}</Text>                           
+                              </View>
                         )}
                         contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingHorizontal: 10 }}
                     />
