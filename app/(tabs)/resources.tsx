@@ -1,9 +1,27 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect, useContext } from 'react';
 import { View, Text, StyleSheet, FlatList, Linking, TouchableOpacity, ScrollView, NativeSyntheticEvent, NativeScrollEvent, Modal, Image, Dimensions } from 'react-native';
 import { Link, useNavigation } from 'expo-router';
 import { IconSymbol } from '../../components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import Carousel from 'react-native-reanimated-carousel';
+import AppContext from '@/contexts/appContext';
+import axios from 'axios';
+
+const TRANSLATION_API_URL = 'https://calgary-hacks-2025.vercel.app/api/ai/translate';
+
+const translateMessage = async (sent_text: string, targetLanguage: string) => {
+  try {
+      const response = await axios.post(TRANSLATION_API_URL, {
+          text: sent_text,
+          targetLanguage,
+      });
+      return response.data.translatedText || sent_text;
+  } catch (error) {
+      console.error('Translation error:', error);
+      return sent_text;
+  }
+};
+
 
 interface EmergencyContact {
   id: string;
@@ -153,6 +171,20 @@ const ArticleModal = ({
 export default function ResourcesScreen() {
   const navigation = useNavigation();
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
+  const { userLanguage } = useContext(AppContext) || { userLanguage: 'en' };
+  const [translatedArticles, setTranslatedArticles] = useState([]);
+
+  useEffect(() => {
+    const translateArticles = async () => {
+        const translated = await Promise.all(articles.map(async (article) => {
+            const translatedTitle = await translateMessage(article.title, userLanguage || 'en');
+            const translatedContent = await translateMessage(article.content, userLanguage || 'en');
+            return { ...article, title: translatedTitle, content: translatedContent };
+        }));
+        setTranslatedArticles(translated);
+    };
+    translateArticles();
+}, [userLanguage]);
   
   const handleScroll = useCallback(({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = nativeEvent;
