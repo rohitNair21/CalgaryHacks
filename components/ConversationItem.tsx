@@ -4,6 +4,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useFormContext } from "react-hook-form";
 import { SearchBarData } from "@/lib/types";
 import useAuthContext from "@/hooks/useAuthContext";
+import { router } from "expo-router";
 
 const currentIsFirstParticipant = (currentUserId: string, otherEndUserId: string) => {
     return currentUserId < otherEndUserId;
@@ -90,7 +91,7 @@ export default function ConversationItem({ conversation }: Props) {
     const lastMessage = conversation.lastMessage;
 
     const onPressHandler = () => {
-
+        router.push(`/chat?id=${conversation.id}`);
     };
 
     const { watch } = useFormContext<SearchBarData>();

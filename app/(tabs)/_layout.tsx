@@ -33,9 +33,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="one_on_one"
+        name="chats"
         options={{
-          title: '1-On-1 Chat',
+          title: 'Help',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="t.bubble.fill" color={color} />,
         }}
       />
