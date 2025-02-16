@@ -1,6 +1,6 @@
 import { SearchBarContextProvider } from "@/contexts/searchBarContext";
 import { SignedIn, SignedOut } from "@clerk/clerk-expo";
-import { StyleSheet, View, Text, TouchableOpacity, Keyboard, TextInput, ActivityIndicator } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, Keyboard, TextInput, ActivityIndicator, TouchableWithoutFeedback } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Controller, useFormContext } from "react-hook-form";
 import { SearchBarData } from "@/lib/types";
@@ -8,6 +8,7 @@ import { useCallback, useState } from "react";
 import useChatsContext from "@/hooks/useChatsContext";
 import { FlashList } from "@shopify/flash-list";
 import ConversationItem from "@/components/ConversationItem";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function dismissKeyboard() {
     Keyboard.dismiss();
@@ -92,7 +93,7 @@ function ConversationsArea() {
 
 function ChatsList() {
     return (
-        <View>
+        <View style={{ flex: 1 }}>
             <SearchBarContextProvider>
                 <SearchArea />
                 <ConversationsArea />
@@ -102,15 +103,21 @@ function ChatsList() {
 }
 
 export default function Chats() {
+    const insets = useSafeAreaInsets();
     return (
-        <View style={styles.container}>
-            <SignedIn>
+        <TouchableWithoutFeedback onPress={dismissKeyboard}>
+            <View style={[styles.container, { paddingTop: insets.top }]}>
+                <ChatsList />
+                {/* <SignedIn>
                 <ChatsList />
             </SignedIn>
             <SignedOut>
-                <Text>You need to sign in to see your chats</Text>
-            </SignedOut>
-        </View>
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <Text>You need to sign in to see your chats</Text>
+                </View>
+            </SignedOut> */}
+            </View>
+        </TouchableWithoutFeedback>
     )
 }
 

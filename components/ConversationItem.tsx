@@ -80,7 +80,7 @@ type Props = {
 export default function ConversationItem({ conversation }: Props) {
     const { user } = useAuthContext();
 
-    const userId = user!.id;
+    const userId = "67b15c7c97869aa85f2e1b13"//user!.id;
 
     const unreadMessages = currentIsFirstParticipant(userId, "bot") ?
         conversation.firstParticipant.unreadMessages : conversation.secondParticipant.unreadMessages;

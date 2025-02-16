@@ -22,7 +22,7 @@ const ChatsContext = createContext<contextObject | null>(null);
 export function ChatsContextProvider({ children }: PropsWithChildren) {
     const { user } = useAuthContext();
 
-    const userId = user!.id;
+    const userId = "67b15c7c97869aa85f2e1b13"//user!.id;
 
     // memoizing the reference to the conversations collection
     const conversationsRef = useMemo(() => collection(firestore, "conversations").withConverter(conversationConverter), []);
