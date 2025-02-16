@@ -7,6 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { MessageObject } from '@/lib/types/chat';
 import { FlashList } from '@shopify/flash-list';
 import useAuthContext from '@/hooks/useAuthContext';
+import { getProperTimeUpdated } from '@/lib/helper';
 
 const TRANSLATION_API_URL = 'https://calgary-hacks-2025.vercel.app/api/ai/translate';
 
@@ -171,7 +172,7 @@ export default function ChatScreen() {
                     renderItem={({ item }) => (
                         <View style={[styles.messageContainer, item.senderId === userId ? styles.userMessage : styles.botMessage]}>
                             <Text style={[styles.messageText, item.senderId === userId ? { color: '#fff' } : { color: theme.text }]}>{item.message.content}</Text>
-                            <Text style={styles.timestamp}>{item.createdAt.toDate().toLocaleString()}</Text>
+                            {item.createdAt && <Text style={styles.timestamp}>{getProperTimeUpdated(item.createdAt.toDate())}</Text>}
                         </View>
                     )}
                     contentContainerStyle={{ paddingHorizontal: 10 }}
