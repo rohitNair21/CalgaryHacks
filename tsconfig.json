@@ -6,12 +6,22 @@
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "jsx": "react-native",
+    "target": "esnext",
+    "lib": ["esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+  ],
+  "exclude": ["node_modules"]
 }
