@@ -7,18 +7,35 @@ import Carousel from 'react-native-reanimated-carousel';
 import AppContext from '@/contexts/appContext';
 import axios from 'axios';
 
-const TRANSLATION_API_URL = 'https://calgary-hacks-2025.vercel.app/api/ai/translate';
+const TRANSLATION_API_URL = 'calgary-hacks-2025.vercel.app/api/ai/translate';
 
-const translateMessage = async (sent_text: string, targetLanguage: string) => {
+// const translateMessage = async (sent_text: string, targetLanguage: string) => {
+//   try {
+//       const response = await axios.post(TRANSLATION_API_URL, {
+//           text: sent_text,
+//           targetLanguage,
+//       });
+//       return response.data.translatedText || sent_text;
+//   } catch (error) {
+//       console.error('Translation error:', error);
+//       return sent_text;
+//   }
+// };
+
+const translateMessage =  async (sent_text: string, targetLanguage: string) => {
   try {
-      const response = await axios.post(TRANSLATION_API_URL, {
-          text: sent_text,
-          targetLanguage,
+      const response = await fetch(TRANSLATION_API_URL, {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ text: sent_text, targetLanguage: targetLanguage })
       });
-      return response.data.translatedText || sent_text;
+      const data = await response.json();
+      return data.text || sent_text;
   } catch (error) {
       console.error('Translation error:', error);
-      return sent_text;
+      return sent_text; 
   }
 };
 
@@ -172,25 +189,36 @@ export default function ResourcesScreen() {
   const navigation = useNavigation();
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   const { userLanguage } = useContext(AppContext) || { userLanguage: 'en' };
-  const [translatedArticles, setTranslatedArticles] = useState([]);
+  const [translatedArticles, setTranslatedArticles] = useState<Article[]>([]);
+
+
 
   useEffect(() => {
+    if (!userLanguage) {
+        console.warn("⚠️ userLanguage is undefined, skipping translation");
+        return;
+    }
+
     const translateArticles = async () => {
+        console.log("🔍 Translating articles to:", userLanguage);
+
         const translated = await Promise.all(articles.map(async (article) => {
-            const translatedTitle = await translateMessage(article.title, userLanguage || 'en');
-            const translatedContent = await translateMessage(article.content, userLanguage || 'en');
+            const translatedTitle = await translateMessage(article.title, userLanguage);
+            const translatedContent = await translateMessage(article.content, userLanguage);
             return { ...article, title: translatedTitle, content: translatedContent };
         }));
+
         setTranslatedArticles(translated);
     };
+
     translateArticles();
 }, [userLanguage]);
+
   
   const handleScroll = useCallback(({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = nativeEvent;
     const isScrollingDown = contentOffset.y > 0;
     
-    // @ts-ignore - setTabBarHidden exists but isn't in the type definitions
     navigation.setOptions({ tabBarHidden: isScrollingDown });
   }, [navigation]);
 
@@ -253,7 +281,7 @@ export default function ResourcesScreen() {
           loop={false}
           width={width}
           height={200}
-          data={articles}
+          data={translatedArticles.length > 0 ? translatedArticles : articles}
           scrollAnimationDuration={1000}
           renderItem={({ item }) => (
             <View style={[styles.articleCard, { width: width - 32 }]}>
