@@ -1,14 +1,14 @@
-import { Image, StyleSheet, Platform, View, TextInput, Text, FlatList, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { Image, StyleSheet, View, TextInput, Text, Alert, ActivityIndicator } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { Button, IconButton } from 'react-native-paper';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { useState } from 'react';
 import axios from 'axios';
 import { Controller, useFormContext } from 'react-hook-form';
 import { SearchBarData } from '@/lib/types';
 import { SearchBarContextProvider } from '@/contexts/searchBarContext';
+import { FlashList } from '@shopify/flash-list';
 
 type PostProps = { title: string, author: { name: string }, date: string, body: string, tags: Array<string> }
 
@@ -147,7 +147,9 @@ function PostsList() {
     const posts = data?.pages?.flatMap(page => page || []) || []
 
     return (
-        <FlatList
+        <FlashList
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 40 }}
             data={posts}
             renderItem={({ item }) => (
                 <Post
@@ -174,6 +176,7 @@ function SearchBar() {
             name="searchTerm"
             render={({ field: { onBlur, onChange, value } }) => (
                 <TextInput
+                    placeholder="Search..."
                     style={styles.keywordInput}
                     onChangeText={onChange}
                     onBlur={onBlur}
@@ -256,7 +259,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        height: "5%"
+        height: 40
     },
     filterButton: {
         width: "23%",
