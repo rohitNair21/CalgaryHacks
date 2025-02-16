@@ -7,14 +7,13 @@ import { Button, Card, IconButton } from 'react-native-paper';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import axios from 'axios';
-import { API_PATH_PREFIX } from '@/constants/env';
 
 
 type PostProps = {title: string, author: string, date: string, body: string, tags: Array<string>}
 
 
 const data: Array<PostProps> = [
-  {title: "Just moved to canada", author: "Rohit India", date: "2025-01-1T12:00:00Z" , body:"hime lahjfajhfsjkd aflh lafhl hockey and donuts and i don't know need text lorem i7 a thing is some thign which is also a thing so cool wow", tags: ["tag1", "tag2"]},
+  {title: "Just moved to Canada", author: "Rohit India", date: "2025-01-1T12:00:00Z" , body:"hime lahjfajhfsjkd aflh lafhl hockey and donuts and i don't know need text lorem i7 a thing is some thign which is also a thing so cool wow", tags: ["tag1", "tag2"]},
   {title: "Rohit is a little bitch", author: "Marko", date: "2025-02-12T13:00:00Z" , body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"]},
   {title: "But I love him so much <3", author: "Marko", date: "2025-02-15T17:00:00-07:00" , body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"]},
 ]
@@ -97,7 +96,7 @@ type Post = {
     updatedAt: string; // Use Date if you plan to parse it
 };
 const searchPosts = async ({searchTerm, page, limit}: {searchTerm: string, page: number, limit: number}) : Promise<Post[]> => {
-  const res = await  axios.get(API_PATH_PREFIX + "/posts", {
+  const res = await  axios.get('calgary-hacks-2025.vercel.app/api/posts', {
     params: {
       searchTerm,
       page,
