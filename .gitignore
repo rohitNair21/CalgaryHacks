@@ -37,3 +37,5 @@ env.ts
 *.tsbuildinfo
 
 app-example
+package-lock.json
+package.json
