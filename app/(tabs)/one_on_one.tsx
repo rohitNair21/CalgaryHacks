@@ -3,8 +3,8 @@ import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Keyboard
 
 const TRANSLATION_API_URL = 'https://calgary-hacks-2025.vercel.app/api/ai/translate';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+const tintColorLight = '#74003E';
+const tintColorDark = '#FCF0F4';
 
 export const Colors = {
   light: {
@@ -17,7 +17,7 @@ export const Colors = {
   },
   dark: {
     text: '#ECEDEE',
-    background: '#151718',
+    background: '#fff',
     tint: tintColorDark,
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
@@ -56,7 +56,7 @@ const OneOnOne = () => {
                 { sent_text: message, sender: 'user' },
                 { sent_text: `Echo: ${translatedMessage}`, sender: 'bot' } 
             ];
-            setMessages(newMessages as { sent_text: string; sender: "user" | "bot"; }[]);
+            setMessages(newMessages);
             setMessage('');
         }
     };
@@ -67,9 +67,12 @@ const OneOnOne = () => {
                 <Text style={[styles.header, { color: theme.text }]}>One-on-One Chat</Text>
                 {messages.length === 0 ? (
                     <View style={styles.coverContainer}>
+                        <View style={styles.emergencyBox}>
+                            <Text style={styles.emergencyText}>In a life-threatening situation? Call 911 immediately.</Text>
+                        </View>
                         <Image source={require('@/assets/images/chat_page.png')} style={styles.coverImage} />
                         <Text style={[styles.coverText, { color: theme.text }]}>Speak to a professional in the language you’re comfortable with.</Text>
-                        <TouchableOpacity style={styles.chatNowButton} onPress={() => setMessage('')}>
+                        <TouchableOpacity style={styles.chatNowButton} onPress={() => setMessages([{ sent_text: 'Hello!', sender: 'user' }])}>
                             <Text style={styles.chatNowText}>Chat now</Text>
                         </TouchableOpacity>
                     </View>
@@ -107,13 +110,15 @@ const styles = StyleSheet.create({
     container: { flex: 1, padding: 20 },
     header: { fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 10 },
     coverContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    emergencyBox: { backgroundColor: '#FCF0F4', padding: 10, borderRadius: 10, marginBottom: 15 },
+    emergencyText: { color: '#74003E', fontSize: 16, fontWeight: 'bold', textAlign: 'center' },
     coverImage: { width: '80%', resizeMode: 'contain' },
     coverText: { fontSize: 18, textAlign: 'center', marginTop: 20 },
-    chatNowButton: { marginTop: 20, paddingVertical: 12, paddingHorizontal: 30, backgroundColor: '#C8102E', borderRadius: 25 },
+    chatNowButton: { marginTop: 20, paddingVertical: 12, paddingHorizontal: 30, backgroundColor: '#74003E', borderRadius: 25 },
     chatNowText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
     messageContainer: { padding: 12, marginVertical: 5, borderRadius: 20, maxWidth: '75%' },
-    userMessage: { alignSelf: 'flex-end', backgroundColor: '#0a7ea4' },
-    botMessage: { alignSelf: 'flex-start', backgroundColor: '#444' },
+    userMessage: { alignSelf: 'flex-end', backgroundColor: '#74003E' },
+    botMessage: { alignSelf: 'flex-start', backgroundColor: '#FCF0F4' },
     messageText: { fontSize: 16 },
     inputContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 60, paddingHorizontal: 15, paddingVertical: 10, borderRadius: 30 },
     input: { flex: 1, borderWidth: 0, padding: 12, borderRadius: 25, fontSize: 16 },
