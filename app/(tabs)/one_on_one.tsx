@@ -1,18 +1,38 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, SafeAreaView } from 'react-native';
 
+const TRANSLATION_API_URL = 'https://calgary-hacks-2025.vercel.app/api/ai/translate';
+
 const OneOnOne = () => {
     const [message, setMessage] = useState<string>(''); 
-    const [messages, setMessages] = useState<{ text: string, sender: 'user' | 'bot' }[]>([]);
+    const [messages, setMessages] = useState<{ sent_text: string, sender: 'user' | 'bot' }[]>([]);
 
-    const sendMessage = () => {
+    const translateMessage = async (sent_text: string) => {
+        try {
+            const response = await fetch(TRANSLATION_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: sent_text, targetLanguage: "de" })
+            });
+            const data = await response.json();
+            return data.text || sent_text;
+        } catch (error) {
+            console.error('Translation error:', error);
+            return sent_text; 
+        }
+    };
+
+    const sendMessage = async () => {
         if (message.trim()) {
+            const translatedMessage = await translateMessage(message);
             const newMessages = [
                 ...messages,
-                { text: message, sender: 'user' },
-                { text: `Echo: ${message}`, sender: 'bot' } 
+                { sent_text: message, sender: 'user' },
+                { sent_text: `Echo: ${translatedMessage}`, sender: 'bot' } 
             ];
-            setMessages(newMessages as { text: string; sender: "user" | "bot"; }[]);
+            setMessages(newMessages as { sent_text: string; sender: "user" | "bot"; }[]);
             setMessage('');
         }
     };
@@ -26,7 +46,7 @@ const OneOnOne = () => {
                     keyExtractor={(_, index) => index.toString()}
                     renderItem={({ item }) => (
                         <View style={[styles.messageContainer, item.sender === 'user' ? styles.userMessage : styles.botMessage]}>
-                            <Text style={[styles.messageText, item.sender === 'user' ? styles.userText : styles.botText]}>{item.text}</Text>
+                            <Text style={[styles.messageText, item.sender === 'user' ? styles.userText : styles.botText]}>{item.sent_text}</Text>
                         </View>
                     )}
                     contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', paddingHorizontal: 10 }}
