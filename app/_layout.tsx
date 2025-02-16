@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Redirect, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
@@ -9,11 +9,14 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthContextProvider } from '@/contexts/authContext';
 import { ChatsContextProvider } from '@/contexts/chatsContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import useAppContext from '@/hooks/useAppContext';
+import { AppContextProvider } from '@/contexts/appContext';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-export default function RootLayout() {
+function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -25,9 +28,25 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+
+  const { userLanguage, setUserLanguage } = useAppContext();
+
+  useEffect(() => {
+    const getUserLanguage = async () => {
+      const userLanguage = await AsyncStorage.getItem('userLanguage');
+      if (userLanguage) {
+        setUserLanguage(userLanguage);
+      }
+    };
+    getUserLanguage();
+  }, []);
+
   if (!loaded) {
     return null;
   }
+
+  if (userLanguage)
+    return <Redirect href="/community" />
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -46,4 +65,12 @@ export default function RootLayout() {
       </AuthContextProvider>
     </ThemeProvider>
   );
+}
+
+export default function Layout() {
+  return (
+    <AppContextProvider>
+      <RootLayout />
+    </AppContextProvider>
+  )
 }

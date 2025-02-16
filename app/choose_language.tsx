@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useFonts, Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
 import * as SplashScreen from 'expo-splash-screen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 SplashScreen.preventAutoHideAsync(); // prevent splash screen from hiding before fonts load
 
 const languages = [
@@ -32,8 +33,13 @@ const ChooseLanguage = () => {
     return null;
   }
 
-  const handleLanguageSelection = () => {
-    router.push('/login');
+  const handleLanguageSelection = async () => {
+    try {
+      await AsyncStorage.setItem('userLanguage', selectedLanguage);
+      router.push('/login');
+    } catch (error) {
+      console.error('Error saving language:', error);
+    }
   };
 
   const insets = useSafeAreaInsets();
