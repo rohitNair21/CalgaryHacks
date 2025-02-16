@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Linking, TouchableOpacity, ScrollView, NativeSyntheticEvent, NativeScrollEvent, Modal, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Linking, TouchableOpacity, ScrollView, NativeSyntheticEvent, NativeScrollEvent, Modal, Image, Dimensions } from 'react-native';
 import { Link, useNavigation } from 'expo-router';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { IconSymbol } from '../../components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
+import Carousel from 'react-native-reanimated-carousel';
 
 interface EmergencyContact {
   id: string;
@@ -203,32 +204,38 @@ export default function ResourcesScreen() {
     </>
   );
 
-  const renderArticles = () => (
-    <ScrollView 
-      horizontal 
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.articleList}
-    >
-      {articles.map(item => (
-        <TouchableOpacity 
-          key={item.id}
-          style={styles.articleCard} 
-          onPress={() => setSelectedArticle(item)}
-        >
-          <View style={styles.articleHeader}>
-            <Text style={styles.articleTitle}>{item.title}</Text>
-          </View>
-          <Text style={styles.articleSource}>{item.source}</Text>
-          <TouchableOpacity 
-            style={styles.readButton}
-            onPress={() => setSelectedArticle(item)}
-          >
-            <Text style={styles.readButtonText}>Read Now</Text>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
-  );
+  const renderArticles = () => {
+    const width = Dimensions.get('window').width - 32; // Full width minus padding
+    
+    return (
+      <View style={styles.carouselContainer}>
+        <Carousel
+          loop={false}
+          width={width}
+          height={200}
+          data={articles}
+          scrollAnimationDuration={1000}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              style={[styles.articleCard, { width: width - 32 }]}
+              onPress={() => setSelectedArticle(item)}
+            >
+              <View style={styles.articleHeader}>
+                <Text style={styles.articleTitle}>{item.title}</Text>
+              </View>
+              <Text style={styles.articleSource}>{item.source}</Text>
+              <TouchableOpacity 
+                style={styles.readButton}
+                onPress={() => setSelectedArticle(item)}
+              >
+                <Text style={styles.readButtonText}>Read Now</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+    );
+  };
 
   const renderDisclaimer = () => (
     <View style={styles.disclaimerContainer}>
@@ -344,9 +351,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.card.pink,
     padding: 16,
     borderRadius: 12,
-    marginRight: 12,
-    width: 280,
+    height: '100%',
     justifyContent: 'space-between',
+    alignSelf: 'center',
   },
   articleHeader: {
     flexDirection: 'row',
@@ -496,5 +503,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 16,
     opacity: 0.9,
+  },
+  carouselContainer: {
+    marginHorizontal: 16,
+    alignItems: 'center',
   },
 }); 
