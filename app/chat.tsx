@@ -178,6 +178,7 @@ export default function ChatScreen() {
                     <Text style={[styles.header, { color: theme.text }]}>One-on-One Chat</Text>
                 )}
                 <FlashList
+                    inverted
                     estimatedItemSize={100}
                     data={messages}
                     keyExtractor={(_, index) => index.toString()}
@@ -187,7 +188,7 @@ export default function ChatScreen() {
                             {item.createdAt && <Text style={styles.timestamp}>{getProperTimeUpdated(item.createdAt.toDate())}</Text>}
                         </View>
                     )}
-                    contentContainerStyle={{ paddingHorizontal: 10 }}
+                    contentContainerStyle={{ paddingHorizontal: 10, paddingTop: 20 }}
                 />
                 <View style={[styles.inputContainer, { backgroundColor: theme.tint, marginBottom: 50 }]}>
                     <TextInput
