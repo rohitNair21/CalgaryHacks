@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Image, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useFonts, Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
-import * as SplashScreen from 'expo-splash-screen';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-SplashScreen.preventAutoHideAsync(); // prevent splash screen from hiding before fonts load
+import useAppContext from '@/hooks/useAppContext';
 
 const languages = [
   { name: 'English', code: 'en', flag: require('@/assets/flags/uk.png') },
@@ -24,18 +22,12 @@ const ChooseLanguage = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const router = useRouter();
 
-  const [fontsLoaded] = useFonts({
-    Lexend_400Regular,
-    Lexend_700Bold,
-  });
-
-  if (!fontsLoaded) {
-    return null;
-  }
+  const { setUserLanguage } = useAppContext();
 
   const handleLanguageSelection = async () => {
     try {
       await AsyncStorage.setItem('userLanguage', selectedLanguage);
+      setUserLanguage(selectedLanguage);
       router.push('/login');
     } catch (error) {
       console.error('Error saving language:', error);

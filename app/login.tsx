@@ -1,25 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
-import { Link, router } from 'expo-router';
-import { useFonts, Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
-import * as SplashScreen from 'expo-splash-screen';
-
-SplashScreen.preventAutoHideAsync(); // Prevent splash screen from hiding before fonts load
+import { router } from 'expo-router';
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const [fontsLoaded] = useFonts({
-    Lexend_400Regular,
-    Lexend_700Bold,
-  });
-
-  if (!fontsLoaded) {
-    return null; // Show nothing or a loading spinner
-  }
-
-  SplashScreen.hideAsync(); // Hide splash screen when fonts are ready
 
   return (
     <View style={styles.container}>
@@ -43,7 +28,7 @@ const Login = () => {
           onChangeText={setPassword}
         />
         <Text style={styles.forgotPassword}>Forgot password?</Text>
-        
+
         {/* SIGN IN FUNCTIONALITY NEEDED FROM CLERK */}
         <TouchableOpacity style={styles.signInButton}>
           <Text style={styles.signInText}>Sign in</Text>
