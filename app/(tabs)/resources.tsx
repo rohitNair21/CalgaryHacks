@@ -1,9 +1,26 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Linking, TouchableOpacity, ScrollView, NativeSyntheticEvent, NativeScrollEvent, Modal, Image, Dimensions } from 'react-native';
 import { Link, useNavigation } from 'expo-router';
 import { IconSymbol } from '../../components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import Carousel from 'react-native-reanimated-carousel';
+import axios from 'axios';
+import useAppContext from '@/hooks/useAppContext';
+
+const translateTextApi = async (text: string, targetLanguage: string | null) => {
+  try {
+    const response = await axios.post('https://calgary-hacks-2025.vercel.app/api/ai/translate', {
+      text,
+      targetLanguage: targetLanguage || 'en'
+    })
+
+    console.log(response.data);
+    return response.data.text;
+  } catch (error) {
+    console.error('Error translating text:', error);
+    return text;
+  }
+}
 
 interface EmergencyContact {
   id: string;
@@ -106,17 +123,17 @@ const articles: Article[] = [
 ];
 
 // Add Modal component
-const ArticleModal = ({ 
-  article, 
-  visible, 
-  onClose 
-}: { 
-  article: Article | null; 
-  visible: boolean; 
+const ArticleModal = ({
+  article,
+  visible,
+  onClose
+}: {
+  article: Article | null;
+  visible: boolean;
   onClose: () => void;
 }) => {
   if (!article) return null;
-  
+
   return (
     <Modal
       animationType="slide"
@@ -124,12 +141,12 @@ const ArticleModal = ({
       visible={visible}
       onRequestClose={onClose}
     >
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.modalOverlay}
         activeOpacity={1}
         onPress={onClose}
       >
-        <TouchableOpacity 
+        <TouchableOpacity
           activeOpacity={1}
           onPress={e => e.stopPropagation()}
           style={styles.modalContent}
@@ -153,11 +170,11 @@ const ArticleModal = ({
 export default function ResourcesScreen() {
   const navigation = useNavigation();
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
-  
+
   const handleScroll = useCallback(({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { contentOffset, contentSize, layoutMeasurement } = nativeEvent;
     const isScrollingDown = contentOffset.y > 0;
-    
+
     // @ts-ignore - setTabBarHidden exists but isn't in the type definitions
     navigation.setOptions({ tabBarHidden: isScrollingDown });
   }, [navigation]);
@@ -187,7 +204,7 @@ export default function ResourcesScreen() {
           <View style={styles.contactCard}>
             <View style={styles.contactHeader}>
               <Text style={styles.contactName}>{item.name}</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => openPhone(item.number)}
                 style={styles.phoneButton}
               >
@@ -214,7 +231,7 @@ export default function ResourcesScreen() {
 
   const renderArticles = () => {
     const width = Dimensions.get('window').width - 32; // Full width minus padding
-    
+
     return (
       <View style={styles.carouselContainer}>
         <Carousel
@@ -229,7 +246,7 @@ export default function ResourcesScreen() {
                 <Text style={styles.articleTitle}>{item.title}</Text>
               </View>
               <Text style={styles.articleSource}>{item.source}</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.readButton}
                 onPress={() => setSelectedArticle(item)}
               >
@@ -254,9 +271,49 @@ export default function ResourcesScreen() {
     </View>
   );
 
+  const { userLanguage } = useAppContext();
+
+  const translateText = async () => {
+    const [Title, subTitle, helpfulResources, getAssistance, learnMore] = await Promise.all([
+      translateTextApi('Know where to find help', userLanguage),
+      translateTextApi('Find helplines to reach out to, shelters, and articles to guide you', userLanguage),
+      translateTextApi('Helpful Resources', userLanguage),
+      translateTextApi('Get Assistance', userLanguage),
+      translateTextApi('Learn More', userLanguage),
+    ])
+
+    return {
+      Title,
+      subTitle,
+      helpfulResources,
+      getAssistance,
+      learnMore
+    }
+  }
+
+  const [content, setContent] = useState({
+    Title: 'Know where to find help',
+    subTitle: 'Find helplines to reach out to, shelters, and articles to guide you',
+    helpfulResources: 'Helpful Resources',
+    getAssistance: 'Get Assistance',
+    learnMore: 'Learn More'
+  });
+
+  useEffect(() => {
+    translateText().then(({ Title, subTitle, helpfulResources, getAssistance, learnMore }) => {
+      setContent({
+        Title,
+        subTitle,
+        helpfulResources,
+        getAssistance,
+        learnMore
+      })
+    })
+  }, [userLanguage])
+
   return (
     <>
-      <ScrollView 
+      <ScrollView
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -264,22 +321,22 @@ export default function ResourcesScreen() {
         scrollEventThrottle={16}
       >
         <View style={styles.imageContainer}>
-          <Image 
+          <Image
             source={require('@/assets/images/lake.jpg')}
             style={styles.headerImage}
           />
           <View style={styles.imageOverlay}>
-            <Text style={styles.imageTitle}>Know where to find help</Text>
+            <Text style={styles.imageTitle}>{content.Title}</Text>
             <Text style={styles.imageSubtitle}>
-              Find helplines to reach out to, shelters, and articles to guide you
+              {content.subTitle}
             </Text>
           </View>
         </View>
-        <Text style={styles.mainHeader}>Helpful Resources</Text>
+        <Text style={styles.mainHeader}>{content.helpfulResources}</Text>
         {renderDisclaimer()}
-        <Text style={styles.header}>Get Assistance</Text>
+        <Text style={styles.header}>{content.getAssistance}</Text>
         {renderEmergencyContacts()}
-        <Text style={styles.sectionHeader}>Learn More</Text>
+        <Text style={styles.sectionHeader}>{content.learnMore}</Text>
         {renderArticles()}
       </ScrollView>
       <ArticleModal
