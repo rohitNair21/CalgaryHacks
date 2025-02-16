@@ -6,7 +6,44 @@ import { ThemedView } from '@/components/ThemedView';
 import { Button, Card, IconButton } from 'react-native-paper';
 
 
-const data: Array<number> = [1,2,3,4,5 ,6]
+type PostProps = {title: string, author: string, date: string, body: string, tags: Array<string>}
+const data: Array<PostProps> = [
+  {title: "Just moved to canada", author: "Rohit India", date: "2025-01-1T12:00:00Z" , body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"]},
+  {title: "Rohit is a little bitch", author: "Marko", date: "2025-02-12T13:00:00Z" , body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"]},
+  {title: "But I love him so much <3", author: "Marko", date: "2025-02-15T17:00:00-07:00" , body: "hime lahjfajhfsjkd", tags: ["tag1", "tag2"]},
+]
+
+const Post = ({title, author, date, body, tags}: PostProps) => {
+  
+  const timeSince = (timeString:string) => {
+    const now: Date = new Date();
+    const then: Date = new Date(timeString);
+
+    const hours:number =  Math.floor((now.getTime() - then.getTime()) / (1000 * 60 * 60));
+    if (hours < 24) return `${hours} hours ago`;
+
+    const days:number = Math.floor(hours / 24);
+    if (days < 7) return `${days} days ago`;
+
+    return `${then.getDate()}-${then.getMonth()}-${then.getFullYear()}`;
+    
+    
+  }
+  
+  return(
+    <View style={styles.postContainer}>
+      <ThemedText type="default">{author}</ThemedText>
+      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+        <ThemedText type="subtitle">{title}</ThemedText>
+        <ThemedText type="default">{timeSince(date)}</ThemedText>
+
+      </View>
+
+      <View></View>
+    </View>
+  )
+
+}
 
 export default function HomeScreen() {
   return (
@@ -59,13 +96,9 @@ export default function HomeScreen() {
         </Button>
       </View  >
       
-      <ScrollView>
-       {data.map((item, index) => {
-          return<View style={styles.postContainer} key={index}>
-            <ThemedText type="subtitle">Post {item}</ThemedText>
-          </View>
+       {data.map((post, index) => {
+          return <Post title={post.title} author={post.author} date={post.date} body={post.body} tags={post.tags}/> 
         })}
-      </ScrollView>
 
 
 
