@@ -2,13 +2,15 @@ import { SearchBarContextProvider } from "@/contexts/searchBarContext";
 import { StyleSheet, View, Text, TouchableOpacity, Keyboard, TextInput, ActivityIndicator, TouchableWithoutFeedback, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Controller, useFormContext } from "react-hook-form";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import useChatsContext from "@/hooks/useChatsContext";
 import { FlashList } from "@shopify/flash-list";
 import ConversationItem from "@/components/ConversationItem";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import useAuthContext from "@/hooks/useAuthContext";
 import { router } from "expo-router";
+import useAppContext from "@/hooks/useAppContext";
+import axios from "axios";
 
 function dismissKeyboard() {
     Keyboard.dismiss();
@@ -43,12 +45,55 @@ function SearchArea() {
 
 const initialNumberOfConversations = 10;
 
-function ConversationsArea() {
+const TRANSLATION_API_URL = 'https://calgary-hacks-2025.vercel.app/api/ai/translate';
+
+async function translateText(text: string, targetLanguage: string) {
+    try {
+        const response = await axios.post(TRANSLATION_API_URL, {
+            text,
+            targetLanguage
+        })
+        return response.data.text;
+    } catch (error) {
+        console.error(error);
+        return text;
+    }
+}
+
+function EmptySection() {
     const { user } = useAuthContext();
-    const userId = "67b15c7c97869aa85f2e1b13"//user!.id;
-    const { conversations, fetchMoreConversations, conversationsAreLoading, createNewEmptyConversation } = useChatsContext();
-    const [moreDataFetchingAllowed, setMoreDataFetchingAllowed] = useState(false);
-    const allowMoreDataFetching = useCallback(() => setMoreDataFetchingAllowed(true), []);
+    const userId = user?.id ?? "user";
+    const { createNewEmptyConversation } = useChatsContext();
+
+    const { userLanguage } = useAppContext();
+
+    const [content, setContent] = useState({
+        warningTitle: "In a life-threatening situation?",
+        warningText: "Do not use this app. Call 911 (Emergency) or 988 (National Suicide Prevention Lifeline).",
+        emptyChatTitle: "Speak to a professional, in the language you’re comfortable with",
+        emptyChatSubtitle: "Talk to trained agents and learn where to find help through a safe and secure 1-on-1 environment.",
+        chatButtonText: "Chat now"
+    });
+
+    useEffect(() => {
+        const translateContent = async () => {
+            const [warningTitle, warningText, emptyChatTitle, emptyChatSubtitle, chatButtonText] = await Promise.all([
+                translateText(content.warningTitle, userLanguage ?? "en"),
+                translateText(content.warningText, userLanguage ?? "en"),
+                translateText(content.emptyChatTitle, userLanguage ?? "en"),
+                translateText(content.emptyChatSubtitle, userLanguage ?? "en"),
+                translateText(content.chatButtonText, userLanguage ?? "en")
+            ])
+            setContent({
+                warningTitle,
+                warningText,
+                emptyChatTitle,
+                emptyChatSubtitle,
+                chatButtonText
+            })
+        }
+        translateContent();
+    }, [userLanguage]);
 
     const handleStartChat = async () => {
         const conversationId = await createNewEmptyConversation({
@@ -68,25 +113,32 @@ function ConversationsArea() {
         router.push(`/chat?id=${conversationId}`);
     }
 
-    if (conversations.length === 0) {
-        return (
-            <View style={styles.emptyChatContainer}>
-                <View style={styles.warningBox}>
-                    <Text style={styles.warningTitle}>In a life-threatening situation?</Text>
-                    <Text style={styles.warningText}>Do not use this app. Call 911 (Emergency) or 988 (National Suicide Prevention Lifeline).</Text>
-                </View>
-                <Image source={require("@/assets/images/chat_page.png")} style={styles.illustration} />
-                <Text style={styles.emptyChatTitle}>Speak to a professional, in the language you’re comfortable with</Text>
-                <Text style={styles.emptyChatSubtitle}>Talk to trained agents and learn where to find help through a safe and secure 1-on-1 environment.</Text>
-                <TouchableOpacity
-                    onPress={handleStartChat}
-                    style={styles.chatButton}
-                >
-                    <Text style={styles.chatButtonText}>Chat now</Text>
-                </TouchableOpacity>
+    return (
+        <View style={styles.emptyChatContainer}>
+            <View style={styles.warningBox}>
+                <Text style={styles.warningTitle}>{content.warningTitle}</Text>
+                <Text style={styles.warningText}>{content.warningText}</Text>
             </View>
-        );
-    }
+            <Image source={require("@/assets/images/chat_page.png")} style={styles.illustration} />
+            <Text style={styles.emptyChatTitle}>{content.emptyChatTitle}</Text>
+            <Text style={styles.emptyChatSubtitle}>{content.emptyChatSubtitle}</Text>
+            <TouchableOpacity
+                onPress={handleStartChat}
+                style={styles.chatButton}
+            >
+                <Text style={styles.chatButtonText}>{content.chatButtonText}</Text>
+            </TouchableOpacity>
+        </View>
+    )
+}
+
+function ConversationsArea() {
+    const { conversations, fetchMoreConversations, conversationsAreLoading } = useChatsContext();
+    const [moreDataFetchingAllowed, setMoreDataFetchingAllowed] = useState(false);
+    const allowMoreDataFetching = useCallback(() => setMoreDataFetchingAllowed(true), []);
+
+    if (conversations.length === 0)
+        return <EmptySection />
 
     return (
         <View style={{ flex: 1 }}>

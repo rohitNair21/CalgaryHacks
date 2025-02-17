@@ -9,32 +9,46 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { SearchBarData } from '@/lib/types';
 import { SearchBarContextProvider } from '@/contexts/searchBarContext';
 import { FlashList } from '@shopify/flash-list';
+import useAppContext from '@/hooks/useAppContext';
+import { useState, useEffect } from 'react';
+
+
+const timeSince = (timeString: string) => {
+    const now: Date = new Date();
+    const then: Date = new Date(timeString);
+
+    const hours: number = Math.floor((now.getTime() - then.getTime()) / (1000 * 60 * 60));
+    if (hours < 24) return `${hours} hours ago`;
+
+    const days: number = Math.floor(hours / 24);
+    if (days < 7) return `${days} days ago`;
+
+    return `${then.getDate()}-${then.getMonth() + 1}-${then.getFullYear()}`;
+}
+
 
 type PostProps = { title: string, author: { name: string }, date: string, body: string, tags: Array<string> }
 
 const Post = ({ title, author, date, body, tags }: PostProps) => {
 
-    const timeSince = (timeString: string) => {
-        const now: Date = new Date();
-        const then: Date = new Date(timeString);
+    const { userLanguage } = useAppContext();
 
-        const hours: number = Math.floor((now.getTime() - then.getTime()) / (1000 * 60 * 60));
-        if (hours < 24) return `${hours} hours ago`;
+    const [translatedTimeSince, setTranslatedTimeSince] = useState(timeSince(date));
 
-        const days: number = Math.floor(hours / 24);
-        if (days < 7) return `${days} days ago`;
-
-        return `${then.getDate()}-${then.getMonth() + 1}-${then.getFullYear()}`;
-    }
+    useEffect(() => {
+        translateText(timeSince(date), userLanguage ?? "en").then((text) => {
+            setTranslatedTimeSince(text);
+        })
+    }, [date, userLanguage])
 
     return (
         <View style={styles.postContainer}>
             <ThemedText type="default">{author.name}</ThemedText>
 
             {/* title and date */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <ThemedText type="subtitle">{title}</ThemedText>
-                <ThemedText type="default">{timeSince(date)}</ThemedText>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <ThemedText type="subtitle" style={{ flex: 0.7, minWidth: 95, fontSize: 18 }}>{title}</ThemedText>
+                <ThemedText type="default" style={{ flex: 0.3, fontSize: 12, lineHeight: 12 }}>{translatedTimeSince}</ThemedText>
             </View>
 
             {/* body  */}
@@ -86,12 +100,13 @@ type Post = {
     createdAt: string; // Use Date if you plan to parse it
     updatedAt: string; // Use Date if you plan to parse it
 };
-const searchPosts = async ({ searchTerm, page, limit }: { searchTerm: string, page: number, limit: number }): Promise<Post[]> => {
+const searchPosts = async ({ searchTerm, page, limit, targetLanguage }: { searchTerm: string, page: number, limit: number, targetLanguage: string }): Promise<Post[]> => {
     const res = await axios.get('https://calgary-hacks-2025.vercel.app/api/posts', {
         params: {
             searchTerm,
             page,
-            limit
+            limit,
+            targetLanguage
         }
     })
 
@@ -104,6 +119,8 @@ function PostsList() {
     const { watch } = useFormContext<SearchBarData>();
 
     const searchTerm = watch("searchTerm");
+
+    const { userLanguage } = useAppContext();
 
     const {
         data,
@@ -121,7 +138,8 @@ function PostsList() {
                 return await searchPosts({
                     searchTerm,
                     page: pageParam,
-                    limit
+                    limit,
+                    targetLanguage: userLanguage ?? "en"
                 });
             } catch (error) {
                 Alert.alert("Error", "An error occured while fetching posts");
@@ -187,7 +205,47 @@ function SearchBar() {
     )
 }
 
+const TRANSLATION_API_URL = 'https://calgary-hacks-2025.vercel.app/api/ai/translate';
+
+async function translateText(text: string, targetLanguage: string) {
+    const response = await axios.post(TRANSLATION_API_URL, {
+        text,
+        targetLanguage
+    })
+    return response.data.text as string;
+}
+
 export default function HomeScreen() {
+    const { userLanguage } = useAppContext();
+
+    const [content, setContent] = useState({
+        title: "Welcome!",
+        subtitle: "Share your expreriences, post questions and find support through a passionate community",
+        filter1: "Physical",
+        filter2: "Emotional",
+        filter3: "Sexual violence"
+    });
+
+    useEffect(() => {
+        const translateContent = async () => {
+            const [title, subtitle, filter1, filter2, filter3] = await Promise.all([
+                translateText(content.title, userLanguage ?? "en"),
+                translateText(content.subtitle, userLanguage ?? "en"),
+                translateText("Physical", userLanguage ?? "en"),
+                translateText("Emotional", userLanguage ?? "en"),
+                translateText("Sexual violence", userLanguage ?? "en")
+            ])
+            setContent({
+                title,
+                subtitle,
+                filter1,
+                filter2,
+                filter3
+            })
+        }
+        translateContent();
+    }, [userLanguage])
+
     return (
         // picture and text
         <ParallaxScrollView
@@ -198,8 +256,8 @@ export default function HomeScreen() {
                     style={styles.homeImage}
                 />
             }
-            title="Welcome!"
-            subtitle="Share your expreriences, post questions and find support through a passionate community"
+            title={content.title}
+            subtitle={content.subtitle}
         >
             <SearchBarContextProvider>
                 {/* search bar */}
@@ -215,7 +273,7 @@ export default function HomeScreen() {
                         mode="outlined"
                         compact={true}
                     >
-                        <Text style={{ fontSize: 9 }}>Physical</Text>
+                        <Text style={{ fontSize: 9 }}>{content.filter1}</Text>
                     </Button>
                     <Button
                         labelStyle={{ padding: 0, position: 'absolute', left: "auto", margin: 0 }}
@@ -224,7 +282,7 @@ export default function HomeScreen() {
                         mode='outlined'
                         compact={true}
                     >
-                        <Text style={{ fontSize: 9 }}>Emotional</Text>
+                        <Text style={{ fontSize: 9 }}>{content.filter2}</Text>
                     </Button>
                     <Button
                         labelStyle={{ padding: 0, position: 'absolute', left: "auto", margin: 0 }}
@@ -232,7 +290,7 @@ export default function HomeScreen() {
                         style={styles.filterButton}
                         mode='outlined'
                     >
-                        <Text style={{ fontSize: 9 }}>Sexual violence</Text>
+                        <Text style={{ fontSize: 9 }}>{content.filter3}</Text>
                     </Button>
                 </View  >
                 <PostsList />
@@ -265,7 +323,7 @@ const styles = StyleSheet.create({
         width: "23%",
     },
     postContainer: {
-        height: 170,
+        minHeight: 170,
         marginTop: 10,
         width: "100%",
         borderBottomWidth: 1,

@@ -8,6 +8,8 @@ import { MessageObject } from '@/lib/types/chat';
 import { FlashList } from '@shopify/flash-list';
 import useAuthContext from '@/hooks/useAuthContext';
 import { getProperTimeUpdated } from '@/lib/helper';
+import useAppContext from '@/hooks/useAppContext';
+import axios from 'axios';
 
 const TRANSLATION_API_URL = 'https://calgary-hacks-2025.vercel.app/api/ai/translate';
 
@@ -33,17 +35,51 @@ export const Colors = {
     },
 };
 
+async function translateText(text: string, targetLanguage: string) {
+    const response = await axios.post(TRANSLATION_API_URL, {
+        text,
+        targetLanguage
+    })
+    return response.data.text;
+}
+
 type createNewMessageArgs = {
     sent_text: string;
     sender: string;
 };
+function MessageItem({ item }: { item: MessageObject }) {
+    const { user } = useAuthContext();
+
+    const userId = user!.id;
+
+    const theme = Colors['light'];
+
+    const { userLanguage } = useAppContext();
+
+    const [translatedMessage, setTranslatedMessage] = useState<string | null>(item.message.content);
+
+    useEffect(() => {
+        translateText(item.message.content, userLanguage ?? "en").then((text) => {
+            setTranslatedMessage(text);
+        })
+    }, [item.message.content, userLanguage])
+
+    return (
+        <View style={[styles.messageContainer, item.senderId === userId ? styles.userMessage : styles.botMessage]}>
+            <Text style={[styles.messageText, item.senderId === userId ? { color: '#fff' } : { color: theme.text }]}>
+                {translatedMessage}
+            </Text>
+            {item.createdAt && <Text style={styles.timestamp}>{getProperTimeUpdated(item.createdAt.toDate())}</Text>}
+        </View>
+    )
+}
 
 const initialNumberOfMessages = 10;
 
 export default function ChatScreen() {
     const { user } = useAuthContext();
 
-    const userId = "67b15c7c97869aa85f2e1b13"//user!.id;
+    const userId = user?.id ?? "user";
 
     const { id } = useLocalSearchParams<{ id: string }>();
 
@@ -182,12 +218,7 @@ export default function ChatScreen() {
                     estimatedItemSize={100}
                     data={messages}
                     keyExtractor={(_, index) => index.toString()}
-                    renderItem={({ item }) => (
-                        <View style={[styles.messageContainer, item.senderId === userId ? styles.userMessage : styles.botMessage]}>
-                            <Text style={[styles.messageText, item.senderId === userId ? { color: '#fff' } : { color: theme.text }]}>{item.message.content}</Text>
-                            {item.createdAt && <Text style={styles.timestamp}>{getProperTimeUpdated(item.createdAt.toDate())}</Text>}
-                        </View>
-                    )}
+                    renderItem={({ item }) => <MessageItem item={item} />}
                     contentContainerStyle={{ paddingHorizontal: 10, paddingTop: 20 }}
                 />
                 <View style={[styles.inputContainer, { backgroundColor: theme.tint, marginBottom: 50 }]}>

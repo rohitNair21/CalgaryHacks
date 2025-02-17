@@ -4,8 +4,11 @@ import { Link, Redirect } from 'expo-router';
 import { useFonts, Lexend_400Regular, Lexend_700Bold } from '@expo-google-fonts/lexend';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useAppContext from '@/hooks/useAppContext';
+import { useUser } from '@clerk/clerk-expo';
 
 const LandingPage = () => {
+    const { isSignedIn } = useUser();
+
     const [fontsLoaded] = useFonts({ Lexend_400Regular, Lexend_700Bold });
 
     const { userLanguage, setUserLanguage } = useAppContext();
@@ -21,11 +24,11 @@ const LandingPage = () => {
         getUserLanguage();
     }, []);
 
-    if (!fontsLoaded || userLanguage === null) {
+    if (!fontsLoaded || isSignedIn === undefined || userLanguage === null) {
         return <View />;
     }
 
-    if (userLanguage)
+    if (userLanguage || isSignedIn)
         return <Redirect href="/community" />
 
     return (

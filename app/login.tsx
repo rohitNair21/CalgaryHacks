@@ -1,10 +1,34 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert, Keyboard } from 'react-native';
 import { router } from 'expo-router';
+import { useSignIn } from '@clerk/clerk-expo';
+
+function dismissKeyboard() {
+  Keyboard.dismiss();
+}
 
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  const { isLoaded: signInIsReady, signIn: clerkSignIn, setActive: setSignInActive } = useSignIn();
+
+  const handleLogin = async () => {
+    try {
+      if (signInIsReady) {
+        const completeSignIn = await clerkSignIn.create({ identifier: email, password })
+        if (completeSignIn.status === "complete") {
+          await setSignInActive({ session: completeSignIn.createdSessionId })
+          dismissKeyboard();
+          router.push("/community")
+        }
+      } else {
+        Alert.alert("Login Failed", "An error occured, please try again");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -30,7 +54,7 @@ const Login = () => {
         <Text style={styles.forgotPassword}>Forgot password?</Text>
 
         {/* SIGN IN FUNCTIONALITY NEEDED FROM CLERK */}
-        <TouchableOpacity style={styles.signInButton}>
+        <TouchableOpacity style={styles.signInButton} onPress={handleLogin}>
           <Text style={styles.signInText}>Sign in</Text>
         </TouchableOpacity>
 

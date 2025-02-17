@@ -6,6 +6,19 @@ import { SearchBarData } from "@/lib/types";
 import useAuthContext from "@/hooks/useAuthContext";
 import { router } from "expo-router";
 import { currentIsFirstParticipant, getProperTimeUpdated } from "@/lib/helper";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import useAppContext from "@/hooks/useAppContext";
+
+const TRANSLATION_API_URL = 'https://calgary-hacks-2025.vercel.app/api/ai/translate';
+
+async function translateText(text: string, targetLanguage: string) {
+    const response = await axios.post(TRANSLATION_API_URL, {
+        text,
+        targetLanguage
+    })
+    return response.data.text;
+}
 
 type Props = {
     conversation: ConversationObject
@@ -13,7 +26,7 @@ type Props = {
 export default function ConversationItem({ conversation }: Props) {
     const { user } = useAuthContext();
 
-    const userId = "67b15c7c97869aa85f2e1b13"//user!.id;
+    const userId = user?.id ?? "user";
 
     const unreadMessages = currentIsFirstParticipant(userId, "bot") ?
         conversation.firstParticipant.unreadMessages : conversation.secondParticipant.unreadMessages;
@@ -29,6 +42,16 @@ export default function ConversationItem({ conversation }: Props) {
     const { watch } = useFormContext<SearchBarData>();
 
     const searchTerm = watch("searchTerm");
+
+    const [translatedLastMessage, setTranslatedLastMessage] = useState(lastMessage);
+
+    const { userLanguage } = useAppContext();
+
+    useEffect(() => {
+        translateText(lastMessage, userLanguage ?? "en").then((text) => {
+            setTranslatedLastMessage(text);
+        })
+    }, [lastMessage, userLanguage])
 
     return (
         <TouchableHighlight onPress={onPressHandler}>
@@ -62,7 +85,7 @@ export default function ConversationItem({ conversation }: Props) {
                                 ellipsizeMode="tail"
                                 style={styles.lastMessage}
                             >
-                                {lastMessage}
+                                {translatedLastMessage}
                             </Text>
                         </View>
                         {unreadMessages > 0 && (
