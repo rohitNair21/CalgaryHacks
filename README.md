@@ -1,6 +1,6 @@
 # SafeHaven
 
-This is a React Native/TypeScript project created with [Expo](https://expo.dev) and [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This is a React Native/TypeScript project created with [Expo](https://expo.dev) and `create-expo-app`.
 
 SafeHaven is a mobile app designed to support immigrant women facing domestic violence. It offers live chat with real-time translation, safe community spaces for peer support and a resource hub to locate help centres and find useful information.
 
@@ -10,6 +10,12 @@ SafeHaven is a mobile app designed to support immigrant women facing domestic vi
 The backend of SafeHaven is powered by Firebase for users and chats, Google Maps API for location functionality as well as Google Translate API for real-time language translation. Clerk is used for low-level authentication to manage user sign-ins. Data is stored using Next.js and MongoDB, while AWS S3 handles cloud storage. To improve performance and efficiency, AWS CloudFront is used for caching.
 
 On the frontend, SafeHaven features a modern, intuitive UI built with React Native. We utilize React Query and Expo Router to optimize data fetching and navigation, ensuring a quick and seamless user experience.
+
+### Application views
+
+<img width="250" height="550" src="https://github.com/rohitNair21/CalgaryHacks/blob/master/assets/landing.png"/> <img width="250" height="550" src="https://github.com/rohitNair21/CalgaryHacks/blob/master/assets/login.png"/> <img width="250" height="550" src="https://github.com/rohitNair21/CalgaryHacks/blob/master/assets/community.png"/> <img width="250" height="550" src="https://github.com/rohitNair21/CalgaryHacks/blob/master/assets/chat-new.png"/> <img width="250" height="550" src="https://github.com/rohitNair21/CalgaryHacks/blob/master/assets/chats-list.png"/> 
+
+<img width="250" height="700" src="https://github.com/rohitNair21/CalgaryHacks/blob/master/assets/resources.png"/>
 
 ## Get started
 
